@@ -15,7 +15,9 @@
 
 #include <ESP8266WiFi.h>
 
+static uint32_t lastHeartbeat = 0;
 
+static const uint32_t HEARTBEAT_INTERVAL = 60000;
 
 //-------------------------------------------------------------
 

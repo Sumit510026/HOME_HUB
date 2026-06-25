@@ -4,7 +4,7 @@
 // Ring Buffer
 //======================================================
 
-static volatile NodePacket queue[QUEUE_SIZE];
+static  NodePacket queue[QUEUE_SIZE];
 
 static volatile uint8_t head = 0;
 static volatile uint8_t tail = 0;

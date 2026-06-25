@@ -23,6 +23,7 @@ static OTAStatus otaStatus = OTA_IDLE;
 static bool otaRunning = false;
 
 static uint8_t otaProgress = 0;
+static uint8_t lastPercent = 255;
 
 //------------------------------------------------------------
 // OTA Callbacks
@@ -46,7 +47,7 @@ bool initOTA(void)
     otaProgress = 0;
 
     Serial.println("[OTA] Manager Initialized");
-    printFirmwareInfo();
+    //printFirmwareInfo();
     return true;
 }
 

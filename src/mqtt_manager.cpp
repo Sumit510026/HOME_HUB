@@ -1,4 +1,5 @@
 #include "mqtt_manager.h"
+#include "ota_manager.h"
 
 #include <PubSubClient.h>
 #include <ArduinoJson.h>
@@ -53,7 +54,7 @@ bool mqttReconnect()
 
     serializeJson(doc, lwt);
 
-    bool ok = mqtt.connect(clientID.c_str(),
+    bool ok = mqtt.connect(clientID,
                            NULL,
                            NULL,
                            MQTT_TOPIC_STATUS,
@@ -115,33 +116,18 @@ bool mqttPublishEvent(const NodePacket &pkt)
 {
     StaticJsonDocument<256> doc;
 
-    doc["nodeID"] = pkt.nodeID;
-
-    doc["sensor"] = sensorTypeToString(pkt.sensorType);
-
-    doc["event"] = eventTypeToString(pkt.event);
-
-    doc["battery"] = pkt.battery;
-
+    doc["nodeID"]   = pkt.nodeID;
+    doc["sensor"]   = sensorTypeToString(pkt.sensorType);
+    doc["event"]    = eventToString(pkt.event);
+    doc["battery"]  = pkt.battery;
     doc["sequence"] = pkt.sequence;
-
-    doc["uptime"] = pkt.uptime;
-
-    doc["hubRSSI"] = wifiRSSI();
-
-    doc["heap"] = ESP.getFreeHeap();
+    doc["uptime"]   = pkt.uptime;
+    doc["hubRSSI"]  = wifiRSSI();
+    doc["heap"]     = ESP.getFreeHeap();
 
     char payload[256];
 
-        size_t len =
-    serializeJson(doc,
-                  payload,
-                  sizeof(payload));
-
-    return mqtt.publish(topic,
-                    payload,
-                    len,
-                    retained);
+    serializeJson(doc, payload, sizeof(payload));
 
     char topic[64];
 
@@ -151,8 +137,7 @@ bool mqttPublishEvent(const NodePacket &pkt)
              MQTT_TOPIC_EVENT,
              pkt.nodeID);
 
-    return mqtt.publish(topic,
-                        payload);
+    return mqtt.publish(topic, payload);
 }
 
 bool mqttPublishHeartbeat()
@@ -202,16 +187,34 @@ static void mqttCallback(char *topic,
     const char *cmd = doc["cmd"] | "";
 
     if (strcmp(cmd, "status") == 0)
-    {
-        mqttPublishStatus();
-    }
-    else if (strcmp(cmd, "ota") == 0)
-    {
-        const char *url = doc["url"] | "";
-        const char *version = doc["version"] | "";
+{
+    mqttPublishStatus();
+}
+else if (strcmp(cmd, "reboot") == 0)
+{
+    ESP.restart();
+}
+else if (strcmp(cmd, "ota") == 0)
+{
+    const char *url = doc["url"] | "";
+    const char *version = doc["version"] | "";
 
-        startOTA(url, version);
+    if (strlen(url) == 0 || strlen(version) == 0)
+    {
+        Serial.println("[MQTT] Invalid OTA Command");
+        return;
     }
+
+    startOTA(url, version);
+}
+else if (strcmp(cmd, "arm") == 0)
+{
+    // Future
+}
+else if (strcmp(cmd, "disarm") == 0)
+{
+    // Future
+}
 }
 
 bool mqttPublishStatus()
@@ -240,4 +243,9 @@ bool mqttPublishJSON(const char *topic,
     return mqtt.publish(topic,
                         payload,
                         retained);
+}
+
+bool mqttConnected(void)
+{
+    return mqtt.connected();
 }
