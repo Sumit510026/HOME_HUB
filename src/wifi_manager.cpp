@@ -72,15 +72,25 @@ bool initWiFi(void)
 
 void wifiTask(void)
 {
-    if (WiFi.status() == WL_CONNECTED)
+    static wl_status_t last = WL_CONNECTED;
+
+    wl_status_t wifiStatus = WiFi.status();
+
+    if (wifiStatus != last)
+    {
+        Serial.printf("[WiFi] Status=%d\n", wifiStatus);
+        last = wifiStatus;
+    }
+
+    if (wifiStatus == WL_CONNECTED)
         return;
 
-    uint32_t now = millis();
+    uint32_t currentTime = millis();
 
-    if ((now - lastReconnectAttempt) < RECONNECT_INTERVAL)
+    if ((currentTime - lastReconnectAttempt) < RECONNECT_INTERVAL)
         return;
 
-    lastReconnectAttempt = now;
+    lastReconnectAttempt = currentTime;
 
     Serial.println("[WiFi] Disconnected");
 

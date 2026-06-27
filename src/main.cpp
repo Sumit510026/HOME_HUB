@@ -12,6 +12,8 @@
 #include "mqtt_manager.h"
 #include "heartbeat.h"
 #include "ota_manager.h"
+#include "aws_manager.h" 
+#include "queue_manager.h"
 
 void setup()
 {
@@ -24,8 +26,19 @@ void setup()
     Serial.println("==========================================");
 
     initWiFi();
-
+    queueInit();
     initESPNow();
+    
+
+    if (!initAWS())
+    {
+    Serial.println("[SYSTEM] AWS Initialization Failed");
+
+    while (true)
+    {
+        delay(1000);
+    }
+    }
 
     initMQTT();
 

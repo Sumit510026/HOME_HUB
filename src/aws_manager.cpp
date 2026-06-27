@@ -29,9 +29,9 @@
 
 static BearSSL::WiFiClientSecure secureClient;
 
-static BearSSL::X509List* rootCA = nullptr;
-static BearSSL::X509List* deviceCert = nullptr;
-static BearSSL::PrivateKey* privateKey = nullptr;
+static BearSSL::X509List rootCA(AWS_ROOT_CA);
+static BearSSL::X509List deviceCert(AWS_CERT);
+static BearSSL::PrivateKey privateKey(AWS_PRIVATE_KEY);
 
 static bool syncTime();
 
@@ -45,18 +45,16 @@ bool initAWS()
         return false;
     }
 
-    rootCA = new BearSSL::X509List(AWS_ROOT_CA);
 
-    deviceCert = new BearSSL::X509List(AWS_CERT);
+    secureClient.setTrustAnchors(&rootCA);
+    secureClient.setClientRSACert(&deviceCert,
+                              &privateKey);
+    
+    secureClient.setBufferSizes(512, 512);
+    secureClient.setTimeout(30000); // 30 seconds
 
-    privateKey = new BearSSL::PrivateKey(AWS_PRIVATE_KEY);
-
-    secureClient.setTrustAnchors(rootCA);
-
-    secureClient.setClientRSACert(deviceCert,
-                                  privateKey);
-
-    secureClient.setTimeout(30);
+    Serial.print("[AWS] Endpoint : ");
+    Serial.println(AWS_ENDPOINT);
 
     Serial.println("[AWS] TLS Ready");
 
