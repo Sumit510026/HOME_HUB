@@ -3,13 +3,11 @@
 
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
-
+#include "config.h"
 //======================================================
 // Configuration
 //======================================================
 
-#define CONFIG_AP_SSID     "SecureHome_Setup"
-#define CONFIG_AP_PASSWORD ""
 
 ESP8266WebServer server(80);
 
@@ -18,7 +16,7 @@ static bool portalRunning = false;
 //======================================================
 // HTML Page
 //======================================================
-
+/*
 static const char HTML_PAGE[] PROGMEM = R"rawliteral(
 <!DOCTYPE html>
 <html>
@@ -72,6 +70,101 @@ Save
 </body>
 </html>
 )rawliteral";
+*/
+
+//======================================================
+// HTML Page_start
+//======================================================
+
+const char PAGE_START[] PROGMEM = R"rawliteral(
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+
+<title>Secure Home</title>
+
+<style>
+
+body{
+font-family:Arial;
+background:#f5f5f5;
+}
+
+.card{
+width:340px;
+margin:auto;
+margin-top:40px;
+background:white;
+padding:20px;
+border-radius:10px;
+}
+
+select,input{
+width:100%;
+padding:10px;
+margin-top:10px;
+}
+
+button{
+width:100%;
+padding:10px;
+margin-top:15px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>Secure Home Setup</h2>
+
+<form action="/save" method="POST">
+
+<label>Select WiFi</label>
+
+<select name="ssid">
+
+)rawliteral";
+
+//======================================================
+// HTML Page_end
+//
+
+const char PAGE_END[] PROGMEM = R"rawliteral(
+
+</select>
+
+<br>
+
+<input
+type="password"
+name="password"
+placeholder="Password"
+required>
+
+<br>
+
+<button type="submit">
+
+Connect
+
+</button>
+
+</form>
+
+</div>
+
+</body>
+
+</html>
+
+)rawliteral";
+
 
 //======================================================
 // Root Page
@@ -79,7 +172,45 @@ Save
 
 static void handleRoot()
 {
-    server.send(200, "text/html", HTML_PAGE);
+    int count = WiFi.scanNetworks();
+
+    server.setContentLength(CONTENT_LENGTH_UNKNOWN);
+
+    server.send(200,
+                "text/html",
+                "");
+
+    server.sendContent_P(PAGE_START);
+
+    if (count == 0)
+    {
+        server.sendContent("<option>No Networks Found</option>");
+    }
+    else
+    {
+        for (int i = 0; i < count; i++)
+        {
+            String option;
+
+            option += "<option value=\"";
+            option += WiFi.SSID(i);
+            option += "\">";
+
+            option += WiFi.SSID(i);
+            option += " (";
+            option += String(WiFi.RSSI(i));
+            option += " dBm)";
+
+            if (WiFi.encryptionType(i) != ENC_TYPE_NONE)
+                option += " 🔒";
+
+            option += "</option>";
+
+            server.sendContent(option);
+        }
+    }
+
+    server.sendContent_P(PAGE_END);
 }
 
 //======================================================
@@ -133,8 +264,16 @@ bool startWiFiConfigPortal(void)
 
     WiFi.mode(WIFI_AP);
 
-    WiFi.softAP(CONFIG_AP_SSID,
-                CONFIG_AP_PASSWORD);
+    String ssid = getAPSSID();
+    String password = getAPPassword();
+
+    Serial.print("[WiFi Config] AP SSID : ");
+    Serial.println(ssid);
+
+    Serial.print("[WiFi Config] AP Password : ");
+    Serial.println(password);
+
+    WiFi.softAP(ssid.c_str(), password.c_str());
 
     Serial.print("[WiFi Config] AP IP : ");
     Serial.println(WiFi.softAPIP());
