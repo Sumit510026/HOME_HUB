@@ -8,4 +8,6 @@ bool initAWS(void);
 
 BearSSL::WiFiClientSecure* getAWSClient(void);
 
+extern BearSSL::X509List rootCA;
+
 #endif

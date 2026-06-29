@@ -13,6 +13,8 @@
 #include <ESP8266httpUpdate.h>
 
 #include "wifi_manager.h"
+#include "aws_manager.h"
+#include "mqtt_manager.h"
 
 //------------------------------------------------------------
 // Private Variables
@@ -153,8 +155,10 @@ bool startOTA(const char *firmwareURL,
      * OTA Server Root Certificate.
      */
 
-    client.setInsecure();
+    // client.setInsecure(); //older 
+    client.setTrustAnchors(&rootCA);
 
+    
     //--------------------------------------------------------
 
     ESPhttpUpdate.onStart(otaStartCallback);
@@ -170,6 +174,11 @@ bool startOTA(const char *firmwareURL,
 
     ESPhttpUpdate.rebootOnUpdate(true);
 
+
+    // Close MQTT cleanly before OTA download
+    mqttDisconnect();
+
+    delay(200);
     //--------------------------------------------------------
 
     t_httpUpdate_return result =

@@ -32,4 +32,6 @@ bool mqttPublishJSON(const char *topic,
                      JsonDocument &doc,
                      bool retained);
 
+void mqttDisconnect(void); //disconnect MQTT for OTA update
+
 #endif

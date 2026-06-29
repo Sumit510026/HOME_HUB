@@ -15,4 +15,6 @@ String wifiMAC(void);
 
 String wifiIP(void);
 
+void resetWiFiSettings(void);
+
 #endif

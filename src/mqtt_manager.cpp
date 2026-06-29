@@ -621,3 +621,13 @@ static void mqttCallback(char *topic,
     Serial.print("[MQTT] Unknown Command : ");
     Serial.println(cmd);
 }
+
+//Disconnect MQTT for OTA update
+void mqttDisconnect(void)
+{
+    if (mqtt.connected())
+    {
+        mqtt.disconnect();
+        Serial.println("[MQTT] Disconnected for OTA");
+    }
+}

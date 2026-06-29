@@ -14,6 +14,7 @@
 #include "ota_manager.h"
 #include "aws_manager.h" 
 #include "queue_manager.h"
+#include "wifi_storage.h"
 
 void setup()
 {
@@ -25,6 +26,26 @@ void setup()
     Serial.println("      HOME SECURITY HUB STARTING");
     Serial.println("==========================================");
 
+    if (!initWiFiStorage())
+    {
+        Serial.println("[SYSTEM] LittleFS Init Failed");
+
+        while (true)
+        {
+            delay(1000);
+        }
+    }
+
+    if (!initWiFi())
+    {
+        Serial.println("[SYSTEM] WiFi Init Failed");
+
+        while (true)
+        {
+            delay(1000);
+        }
+    }
+    
     initWiFi();
     queueInit();
     initESPNow();

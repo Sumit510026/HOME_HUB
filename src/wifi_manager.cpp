@@ -2,7 +2,8 @@
 
 #include <ESP8266WiFi.h>
 
-#include "config.h"
+#include "wifi_storage.h"
+#include "wifi_config.h"
 
 //======================================================
 // Configuration
@@ -19,12 +20,34 @@ static const uint32_t WIFI_TIMEOUT = 15000;           // 15 sec
 
 static bool connectWiFi(void)
 {
+    WiFiCredentials credentials;
+
+    // Load saved credentials
+    if (!loadWiFiCredentials(credentials))
+    {
+        Serial.println("[WiFi] No saved credentials");
+
+     startWiFiConfigPortal();
+
+    Serial.println("[WiFi] Waiting for user configuration...");
+
+    while (true)
+    {
+    wifiConfigTask();
+    delay(1);
+    }
+    }
+
     Serial.println();
     Serial.println("[WiFi] Connecting...");
 
+    Serial.print("[WiFi] SSID : ");
+    Serial.println(credentials.ssid);
+
     WiFi.mode(WIFI_STA);
 
-    WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+    WiFi.begin(credentials.ssid.c_str(),
+               credentials.password.c_str());
 
     uint32_t start = millis();
 
@@ -56,7 +79,6 @@ static bool connectWiFi(void)
 
     return true;
 }
-
 //======================================================
 // Initialize
 //======================================================
@@ -132,3 +154,4 @@ String wifiIP(void)
 {
     return WiFi.localIP().toString();
 }
+

@@ -29,7 +29,7 @@
 
 static BearSSL::WiFiClientSecure secureClient;
 
-static BearSSL::X509List rootCA(AWS_ROOT_CA);
+BearSSL::X509List rootCA(AWS_ROOT_CA);
 static BearSSL::X509List deviceCert(AWS_CERT);
 static BearSSL::PrivateKey privateKey(AWS_PRIVATE_KEY);
 
